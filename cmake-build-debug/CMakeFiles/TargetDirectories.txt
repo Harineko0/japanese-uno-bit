@@ -1,0 +1,3 @@
+C:/Users/hatin/CLionProjects/japanese-uno-bit/cmake-build-debug/CMakeFiles/japanese_uno_bit.dir
+C:/Users/hatin/CLionProjects/japanese-uno-bit/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/hatin/CLionProjects/japanese-uno-bit/cmake-build-debug/CMakeFiles/rebuild_cache.dir
