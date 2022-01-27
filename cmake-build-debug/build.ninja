@@ -65,7 +65,7 @@ build CMakeFiles/japanese_uno_bit.dir/main.cpp.obj: CXX_COMPILER__japanese_uno_b
 
 build japanese_uno_bit.exe: CXX_EXECUTABLE_LINKER__japanese_uno_bit_Debug CMakeFiles/japanese_uno_bit.dir/main.cpp.obj
   FLAGS = -g
-  LINK_FLAGS = -Wl,--stack,4294967296
+  LINK_FLAGS = -Wl,--stack,2147483648
   LINK_LIBRARIES = -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\japanese_uno_bit.dir
   POST_BUILD = cd .

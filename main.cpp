@@ -9,6 +9,8 @@ const int MAX_PLAYER = 2;
 
 __int64 trials = 0;
 __int64 win[MAX_PLAYER] = {0, 0};
+int maxCard = 8;
+int winTimes[8];
 
 typedef __int64 IntCard;
 
@@ -116,10 +118,12 @@ void next_game(int order, IntCard table, IntCard player0, IntCard player1) {
 }
 
 int main() {
-    int order = 0;
-    IntCard table = 0;
-    IntCard player1 = 1ULL << 0 | 1ULL << 4 | 1ULL << 8 | 1ULL << 12 | 1ULL << 16 | 1ULL << 20 | 1ULL << 24 | 1ULL << 28;
-    IntCard player2 = 1ULL << 0 | 1ULL << 4 | 1ULL << 8 | 1ULL << 12 | 1ULL << 16 | 1ULL << 20 | 1ULL << 24 | 1ULL << 28;
+    int order = 1;
+    IntCard table = 1ULL << 12;
+    IntCard player1 = 1ULL << 0 | 1ULL << 4 | 1ULL << 8;
+    IntCard player2 = 1ULL << 0 | 1ULL << 4 | 1ULL << 8 | 1ULL << 12;
+
+
 
     next_game(order, table, player1, player2);
 

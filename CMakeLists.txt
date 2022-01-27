@@ -5,5 +5,5 @@ set(CMAKE_CXX_STANDARD 14)
 
 add_executable(japanese_uno_bit main.cpp)
 
-MATH(EXPR stack_size "4096 * 1024 * 1024") # 16 Mb
+MATH(EXPR stack_size "2048 * 1024 * 1024") # 16 Mb
 set(CMAKE_EXE_LINKER_FLAGS "-Wl,--stack,${stack_size}")
