@@ -118,8 +118,8 @@ void next_game(int order, IntCard table, IntCard player0, IntCard player1) {
 int main() {
     int order = 0;
     IntCard table = 0;
-    IntCard player1 = 1ULL << 0 | 1ULL << 4 | 1ULL << 8 | 1ULL << 12 | 1ULL << 16 | 1ULL << 20 | 1ULL << 24 | 1ULL << 28 | 1ULL << 32;
-    IntCard player2 = 1ULL << 0 | 1ULL << 4 | 1ULL << 8 | 1ULL << 12 | 1ULL << 16 | 1ULL << 20 | 1ULL << 24 | 1ULL << 28 | 1ULL << 32;
+    IntCard player1 = 1ULL << 0 | 1ULL << 4 | 1ULL << 8 | 1ULL << 12 | 1ULL << 16 | 1ULL << 20 | 1ULL << 24 | 1ULL << 28;
+    IntCard player2 = 1ULL << 0 | 1ULL << 4 | 1ULL << 8 | 1ULL << 12 | 1ULL << 16 | 1ULL << 20 | 1ULL << 24 | 1ULL << 28;
 
     next_game(order, table, player1, player2);
 
