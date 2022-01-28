@@ -1,3 +1,16 @@
 # ninja log v5
 2	303	6648361272946378	CMakeFiles/japanese_uno_bit.dir/main.cpp.obj	5df93eeca5824f1e
 303	392	6648361273816566	japanese_uno_bit.exe	41dfdb0d45dbdedf
+2	251	6650771026079130	build.ninja	fd80361f5da982a6
+3	530	6650771032370552	CMakeFiles/japanese_uno_bit.dir/main.cpp.obj	5df93eeca5824f1e
+530	810	6650771035146252	japanese_uno_bit.exe	5734fa1209c64296
+3	438	6650772291618969	CMakeFiles/japanese_uno_bit.dir/main.cpp.obj	5df93eeca5824f1e
+439	625	6650772293470696	japanese_uno_bit.exe	5734fa1209c64296
+2	300	6650772413686931	CMakeFiles/japanese_uno_bit.dir/main.cpp.obj	5df93eeca5824f1e
+301	387	6650772414527128	japanese_uno_bit.exe	5734fa1209c64296
+3	289	6650772870448072	CMakeFiles/japanese_uno_bit.dir/main.cpp.obj	5df93eeca5824f1e
+290	373	6650772871268264	japanese_uno_bit.exe	5734fa1209c64296
+3	337	6650773651129096	CMakeFiles/japanese_uno_bit.dir/main.cpp.obj	5df93eeca5824f1e
+337	435	6650773652089305	japanese_uno_bit.exe	5734fa1209c64296
+2	302	6650773757526950	CMakeFiles/japanese_uno_bit.dir/main.cpp.obj	5df93eeca5824f1e
+302	388	6650773758357139	japanese_uno_bit.exe	5734fa1209c64296
