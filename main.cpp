@@ -22,6 +22,10 @@ struct Table {
     BitCard player0;
     BitCard player1;
 };
+
+struct Result {
+
+};
 // endregion
 
 // region Variables
@@ -41,6 +45,14 @@ void print(const string& str) {
     cout << str << endl;
 }
 
+void print(const Table table){
+    print("--------");
+    print_bit(table.player0);
+    print_bit(table.player1);
+    print("--------");
+}
+
+// 最上位bit
 int bsr(unsigned __int64 v) {
     if (v == 0) -1;
     v |= (v >> 1);
@@ -52,6 +64,7 @@ int bsr(unsigned __int64 v) {
     return __popcount(v) - 1;
 }
 
+// 最下位bit
 int bsf(unsigned __int64 v) {
     if (v == 0) return -1;
     v |= (v << 1);
@@ -93,8 +106,8 @@ void next_game(Table table) {
         playing = table.player0;
     }
 
-    BitCard tableCard = bsr(table.layout) >> 2;
-    if (__popcount(table.layout) != 0 and bsr(playing) >> 2 <= tableCard) {
+    int tableRank = bsr(table.layout) >> 2;
+    if (__popcount(table.layout) != 0 and bsr(playing) >> 2 <= tableRank) {
         next_game({0, next_order(table.order), table.player0, table.player1});
     }
 
@@ -103,7 +116,7 @@ void next_game(Table table) {
     while(c)
     {
         IntCard card = bsf(c);
-        if (tableCard == -1 or card >> 2 > tableCard) {
+        if (tableRank == -1 or card >> 2 > tableRank) {
             next_game({table.layout | (1 << card),
                        next_order(table.order),
                        table.order == 0 ? playing & ~(1 << card) : table.player0,
@@ -120,7 +133,7 @@ void start_game(Table table) {
 
     while (c) {
         IntCard ic = bsf(c);
-        int rank = ic / 4;
+        int rank = ic >> 2;
         if (currentRank < rank) {
             currentRank = rank;
         
@@ -131,10 +144,6 @@ void start_game(Table table) {
 
             sum_win_times[rank] += win_times;
             sum_trials[rank] += trials;
-
-            // if (sum_win_times[rank] > sum_trials[rank]) {
-            //     print(to_string(sum_win_times[rank]) + " > " + to_string(sum_trials[rank]));
-            // }
             win_times = 0;
             trials = 0;
         }
@@ -143,19 +152,21 @@ void start_game(Table table) {
     }
 }
 
-void deal_card(BitCard card_to_deal, Table initTable) {
-    BitCard c = card_to_deal;
+void deal_card(BitCard c, Table initTable) {
 
     while (c) {
+//        print_bit(c);
+//        print(initTable);
+
         IntCard ic = bsf(c);
         if (__popcount(initTable.player0) < MAX_CARD_TO_HAVE) {
             Table nextTable = initTable;
             nextTable.player0 |= 1 << ic;
-            deal_card(c, nextTable);
+            deal_card(c & (c - 1), nextTable);
         } else if (__popcount(initTable.player1) < MAX_CARD_TO_HAVE) {
             Table nextTable = initTable;
             nextTable.player1 |= 1 << ic;
-            deal_card(c, nextTable);
+            deal_card(c & (c - 1), nextTable);
         } else {
             start_game(initTable);
         }
