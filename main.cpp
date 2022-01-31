@@ -29,8 +29,12 @@ struct Result {
     int trials;
     int win_times;
 
-    inline Result operator+=(Result a) const {
+    inline Result operator+(Result a) const {
         return {a.trials + trials, a.win_times + win_times};
+    }
+
+    bool is_empty() const {
+        return trials == 0 and win_times == 0;
     }
 };
 // endregion
@@ -39,8 +43,8 @@ struct Result {
 __int64 sum_trials[MAX_CARD_RANK];
 __int64 sum_win_times[MAX_CARD_RANK];
 
-// DP[i][j][k] = l (i: player0の手札, j: player1の手札, k: 場の札, l: 勝ち数)
-int DP[MAX_BIT_CARD][MAX_BIT_CARD][MAX_INT_CARD];
+// DP[i][j][k][l] = m (i: player0の手札, j: player1の手札, k: 場の札のランク, l: 順番, m: 勝ち数)
+Result DP[MAX_BIT_CARD][MAX_BIT_CARD][MAX_CARD_RANK][2];
 // endregion
 
 // region Util functions
@@ -94,10 +98,19 @@ int next_order(int order) {
 
 // region Core functions
 Result next_game(Table table) {
+    Result dp = DP[table.player0][table.player1][bsr(table.layout) >> 2][table.order];
+    if (!dp.is_empty()) {
+        return dp;
+    }
+
     // check is end next_game
     bool firstHasCard = __popcount(table.player0) == 0;
     if (firstHasCard || __popcount(table.player1) == 0) {
-        return {1, firstHasCard ? 1 : 0};
+        Result result = {1, firstHasCard ? 1 : 0};
+
+        DP[table.player0][table.player1][bsr(table.layout) >> 2][table.order] = result;
+
+        return result;
     }
 
     // check can pass
@@ -109,29 +122,36 @@ Result next_game(Table table) {
         playing = table.player0;
     }
 
-    int tableRank = bsr(table.layout) >> 2;
-    if (__popcount(table.layout) != 0 and bsr(playing) >> 2 <= tableRank) {
-        return next_game({0, next_order(table.order), table.player0, table.player1});
+    int layoutRank = bsr(table.layout) >> 2;
+    if (__popcount(table.layout) != 0 and bsr(playing) >> 2 <= layoutRank) {
+        Result result = next_game({0, next_order(table.order), table.player0, table.player1});
+
+        DP[table.player0][table.player1][layoutRank][table.order] = result;
+
+        return result;
     }
 
     BitCard c = playing;
-    Result result = {};
-    Result tmpResult = {};
+    Result result{};
+    Result tmpResult{};
+
     while(c)
     {
         IntCard card = bsf(c);
-        if (tableRank == -1 or card >> 2 > tableRank) {
+        if (layoutRank == -1 or card >> 2 > layoutRank) {
             tmpResult = next_game({table.layout | (1 << card),
                        next_order(table.order),
                        table.order == 0 ? playing & ~(1 << card) : table.player0,
                        table.order == 1 ? playing & ~(1 << card) : table.player1});
-
             result.win_times += tmpResult.win_times;
             result.trials += tmpResult.trials;
         }
 
         c &= c - 1;
     }
+
+    DP[table.player0][table.player1][layoutRank][table.order] = result;
+
     return result;
 }
 
@@ -163,24 +183,19 @@ void deal_card(BitCard card_to_deal, Table initTable) {
     BitCard c = card_to_deal;
 
     while (c) {
-
         IntCard ic = bsf(c);
         Table nextTable = initTable;
 
         // 順列ではなく組み合わせ。プレイヤーの最大IntCardよりもdealするカードの方が大きければ配る
         if (__popcount(initTable.player0) < MAX_CARD_TO_HAVE) {
             if (bsr(initTable.player0) < ic) {
-
                 nextTable.player0 |= 1 << ic;
                 deal_card(card_to_deal & ~(1 << ic), nextTable);
-
             }
         } else if (__popcount(initTable.player1) < MAX_CARD_TO_HAVE) {
             if (bsr(initTable.player1) < ic) {
-
                 nextTable.player1 |= 1 << ic;
                 deal_card(card_to_deal & ~(1 << ic), nextTable);
-
             }
         } else {
             start_game(nextTable);
