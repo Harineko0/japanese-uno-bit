@@ -9,7 +9,7 @@ using namespace std;
 const int MAX_PLAYER = 2;
 const int MAX_CARD_RANK = 3;
 const int MAX_INT_CARD = MAX_CARD_RANK * 4 - 1;
-const int MAX_CARD_TO_HAVE = 2;
+const int MAX_CARD_TO_HAVE = 3;
 // endregion
 
 // region Definitions
@@ -128,15 +128,16 @@ void next_game(Table table) {
 }
 
 void start_game(Table table) {
+//    print(table);
     BitCard c = table.player0;
-    int currentRank;
+    int currentRank = -1;
 
     while (c) {
         IntCard ic = bsf(c);
         int rank = ic >> 2;
         if (currentRank < rank) {
             currentRank = rank;
-        
+
             next_game({table.layout | (1 << ic),
                    1,
                    table.player0 & ~(1 << ic),
@@ -152,23 +153,31 @@ void start_game(Table table) {
     }
 }
 
-void deal_card(BitCard c, Table initTable) {
+void deal_card(BitCard card_to_deal, Table initTable) {
+    BitCard c = card_to_deal;
 
     while (c) {
-//        print_bit(c);
-//        print(initTable);
 
         IntCard ic = bsf(c);
+        Table nextTable = initTable;
+
+        // 順列ではなく組み合わせ。プレイヤーの最大IntCardよりもdealするカードの方が大きければ配る
         if (__popcount(initTable.player0) < MAX_CARD_TO_HAVE) {
-            Table nextTable = initTable;
-            nextTable.player0 |= 1 << ic;
-            deal_card(c & (c - 1), nextTable);
+            if (bsr(initTable.player0) < ic) {
+
+                nextTable.player0 |= 1 << ic;
+                deal_card(card_to_deal & ~(1 << ic), nextTable);
+
+            }
         } else if (__popcount(initTable.player1) < MAX_CARD_TO_HAVE) {
-            Table nextTable = initTable;
-            nextTable.player1 |= 1 << ic;
-            deal_card(c & (c - 1), nextTable);
+            if (bsr(initTable.player1) < ic) {
+
+                nextTable.player1 |= 1 << ic;
+                deal_card(card_to_deal & ~(1 << ic), nextTable);
+
+            }
         } else {
-            start_game(initTable);
+            start_game(nextTable);
         }
 
         c &= c - 1;
