@@ -9,7 +9,7 @@ using namespace std;
 const int MAX_PLAYER = 2;
 const int MAX_CARD_RANK = 3;
 const int MAX_INT_CARD = MAX_CARD_RANK * 4 - 1;
-const int MAX_CARD_TO_HAVE = 4;
+const int MAX_CARD_TO_HAVE = 2;
 // endregion
 
 // region Definitions
@@ -99,21 +99,16 @@ void next_game(Table table) {
     }
 
     BitCard c = playing;
-    int currentRank;
 
     while(c)
     {
         IntCard card = bsf(c);
-        int rank = card / 4;
-        // print(to_string(currentRank) + " < " + to_string(rank));
-        // if (currentRank < rank) {
-            if (tableCard == -1 or card >> 2 > tableCard) {
-                next_game({table.layout | (1 << card),
-                            next_order(table.order),
-                           table.order == 0 ? playing & ~(1 << card) : table.player0,
-                           table.order == 1 ? playing & ~(1 << card) : table.player1});
-            }
-        // }
+        if (tableCard == -1 or card >> 2 > tableCard) {
+            next_game({table.layout | (1 << card),
+                       next_order(table.order),
+                       table.order == 0 ? playing & ~(1 << card) : table.player0,
+                       table.order == 1 ? playing & ~(1 << card) : table.player1});
+        }
 
         c &= c - 1;
     }
@@ -148,26 +143,20 @@ void start_game(Table table) {
     }
 }
 
-void player_loop(BitCard card_to_deal, Table initTable) {
+void deal_card(BitCard card_to_deal, Table initTable) {
     BitCard c = card_to_deal;
-    // print_bit(c);
 
     while (c) {
         IntCard ic = bsf(c);
         if (__popcount(initTable.player0) < MAX_CARD_TO_HAVE) {
             Table nextTable = initTable;
             nextTable.player0 |= 1 << ic;
-            BitCard nextCard = card_to_deal & ~ (1 << ic);
-            player_loop(nextCard, nextTable);
+            deal_card(c, nextTable);
         } else if (__popcount(initTable.player1) < MAX_CARD_TO_HAVE) {
             Table nextTable = initTable;
             nextTable.player1 |= 1 << ic;
-            BitCard nextCard = card_to_deal & ~ (1 << ic);
-            player_loop(nextCard, nextTable);
+            deal_card(c, nextTable);
         } else {
-//            print("----------");
-//            print_bit(initTable.player0);
-//            print_bit(initTable.player1);
             start_game(initTable);
         }
 
@@ -178,7 +167,7 @@ void player_loop(BitCard card_to_deal, Table initTable) {
 
 int main() {
     BitCard all = (1ULL << (MAX_INT_CARD + 1)) - 1ULL;
-    player_loop(all, {0, 0, 0, 0});
+    deal_card(all, {0, 0, 0, 0});
 
     for (int i = 0; i < MAX_CARD_RANK; i++) {
         print(to_string(i) + ": " + to_string(sum_win_times[i]) + " / " + to_string(sum_trials[i]) + " = " + to_string((double)sum_win_times[i] / (double)sum_trials[i]));
