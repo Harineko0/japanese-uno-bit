@@ -8,10 +8,10 @@ using namespace std;
 
 // region Constants
 const int MAX_PLAYER = 2;
-const int MAX_CARD_RANK = 3;
+const int MAX_CARD_RANK = 4;
 const int MAX_INT_CARD = MAX_CARD_RANK * 4 - 1;
 const int MAX_BIT_CARD = (1ULL << (MAX_INT_CARD + 1)) - 1ULL;
-const int MAX_CARD_TO_HAVE = 2;
+const int MAX_CARD_TO_HAVE = 5;
 // endregion
 
 // region Definitions
@@ -38,7 +38,7 @@ struct Result {
     }
 
     string to_string() {
-        return "Trials: " + std::to_string(trials) + ", Win: " + std::to_string(win_times);
+        return std::to_string(trials) + ", " + std::to_string(win_times);
     }
 };
 // endregion
@@ -104,18 +104,18 @@ int next_order(int order) {
 Result next_game(Table table, Result DP[][MAX_BIT_CARD][MAX_CARD_RANK][2]) {
     int layoutRank = bsr(table.layout) >> 2;
 
-    Result dp = DP[table.player0][table.player1][layoutRank][table.order];
-    print(dp.to_string());
-    if (!dp.is_empty()) {
-        return dp;
-    }
+//    Result dp = DP[table.player0][table.player1][layoutRank][table.order];
+////    print(dp.to_string());
+//    if (!dp.is_empty()) {
+//        return dp;
+//    }
 
     // check is end next_game
     bool firstHasCard = __popcount(table.player0) == 0;
     if (firstHasCard || __popcount(table.player1) == 0) {
         Result result = {1, firstHasCard ? 1 : 0};
 
-        DP[table.player0][table.player1][bsr(table.layout) >> 2][table.order] = result;
+//        DP[table.player0][table.player1][layoutRank][table.order] = result;
 
         return result;
     }
@@ -130,12 +130,9 @@ Result next_game(Table table, Result DP[][MAX_BIT_CARD][MAX_CARD_RANK][2]) {
     }
 
     if (__popcount(table.layout) != 0 and bsr(playing) >> 2 <= layoutRank) {
-        Result result = next_game({0,
-                                   next_order(table.order),
-                                   table.player0,
-                                   table.player1}, DP);
+        Result result = next_game({0, next_order(table.order), table.player0, table.player1}, DP);
 
-        DP[table.player0][table.player1][layoutRank][table.order] = result;
+//        DP[table.player0][table.player1][layoutRank][table.order] = result;
 
         return result;
     }
@@ -149,9 +146,9 @@ Result next_game(Table table, Result DP[][MAX_BIT_CARD][MAX_CARD_RANK][2]) {
         IntCard card = bsf(c);
         if (layoutRank == -1 or card >> 2 > layoutRank) {
             tmpResult = next_game({table.layout | (1 << card),
-                                   next_order(table.order),
-                                   table.order == 0 ? playing & ~(1 << card) : table.player0,
-                                   table.order == 1 ? playing & ~(1 << card) : table.player1}, DP);
+                       next_order(table.order),
+                       table.order == 0 ? playing & ~(1 << card) : table.player0,
+                       table.order == 1 ? playing & ~(1 << card) : table.player1}, DP);
             result.win_times += tmpResult.win_times;
             result.trials += tmpResult.trials;
         }
@@ -159,17 +156,15 @@ Result next_game(Table table, Result DP[][MAX_BIT_CARD][MAX_CARD_RANK][2]) {
         c &= c - 1;
     }
 
-    DP[table.player0][table.player1][layoutRank][table.order] = result;
+//    DP[table.player0][table.player1][layoutRank][table.order] = result;
 
     return result;
 }
 
-void start_game(Table table) {
+void start_game(Table table, Result DP[][MAX_BIT_CARD][MAX_CARD_RANK][2]) {
 //    print(table);
     BitCard c = table.player0;
     int currentRank = -1;
-//    Result (*DP)[MAX_BIT_CARD][MAX_CARD_RANK][2] = (Result(*)[MAX_BIT_CARD][MAX_CARD_RANK][2])malloc(MAX_BIT_CARD * MAX_BIT_CARD * MAX_CARD_RANK * 2 *sizeof(int));
-    Result DP[MAX_BIT_CARD][MAX_BIT_CARD][MAX_CARD_RANK][2];
 
     while (c) {
         IntCard ic = bsf(c);
@@ -190,7 +185,7 @@ void start_game(Table table) {
     }
 }
 
-void deal_card(BitCard card_to_deal, Table initTable) {
+void deal_card(BitCard card_to_deal, Table initTable, Result DP[][MAX_BIT_CARD][MAX_CARD_RANK][2]) {
     BitCard c = card_to_deal;
 
     while (c) {
@@ -201,15 +196,15 @@ void deal_card(BitCard card_to_deal, Table initTable) {
         if (__popcount(initTable.player0) < MAX_CARD_TO_HAVE) {
             if (bsr(initTable.player0) < ic) {
                 nextTable.player0 |= 1 << ic;
-                deal_card(card_to_deal & ~(1 << ic), nextTable);
+                deal_card(card_to_deal & ~(1 << ic), nextTable, DP);
             }
         } else if (__popcount(initTable.player1) < MAX_CARD_TO_HAVE) {
             if (bsr(initTable.player1) < ic) {
                 nextTable.player1 |= 1 << ic;
-                deal_card(card_to_deal & ~(1 << ic), nextTable);
+                deal_card(card_to_deal & ~(1 << ic), nextTable, DP);
             }
         } else {
-            start_game(nextTable);
+            start_game(nextTable, DP);
         }
 
         c &= c - 1;
@@ -217,12 +212,26 @@ void deal_card(BitCard card_to_deal, Table initTable) {
 }
 // endregion
 
-void test(int array[2][2]) {
-    array[0][0] = 10;
-}
-
 int main() {
-    deal_card(MAX_BIT_CARD, {0, 0, 0, 0});
+    Result (*DP)[MAX_BIT_CARD][MAX_CARD_RANK][2] = (Result(*)[MAX_BIT_CARD][MAX_CARD_RANK][2])malloc(MAX_BIT_CARD * MAX_BIT_CARD * MAX_CARD_RANK * 2 * sizeof(Result));
+
+    if(DP == nullptr){
+        printf("Error\n");
+    }else{
+        printf("OK\n");
+    }
+
+    for(int i = 0; i < MAX_BIT_CARD; i++){
+        for(int j = 0; j < MAX_BIT_CARD; j++){
+            for(int k = 0; k < MAX_CARD_RANK; k++){
+                for(int l = 0; l < 2; l++){
+                    DP[i][j][k][l] = {0, 0};
+                }
+            }
+        }
+    }
+
+    deal_card(MAX_BIT_CARD, {0, 0, 0, 0}, DP);
 
     for (int i = 0; i < MAX_CARD_RANK; i++) {
         print(to_string(i) + ": " + to_string(sum_win_times[i]) + " / " + to_string(sum_trials[i]) + " = " + to_string((double)sum_win_times[i] / (double)sum_trials[i]));
