@@ -18,15 +18,15 @@ const int DP_ORDER = 1 << 1;
 // endregion
 
 // region Definitions
-typedef long long BitCard;
+typedef long long BitCards;
 typedef int IntCard;
 typedef long long DPCard;
 
 struct Table {
-    BitCard layout;
+    BitCards layout;
     int order;
-    BitCard player0;
-    BitCard player1;
+    BitCards player0;
+    BitCards player1;
 };
 
 struct Result {
@@ -49,7 +49,7 @@ long long sum_win_times[MAX_CARD_RANK];
 // endregion
 
 // region Util functions
-void printb(BitCard num) {
+void printb(BitCards num) {
     cout << bitset<52>(num) << endl;
 }
 
@@ -98,7 +98,7 @@ bool is_in_dp(Table table) {
 }
 
 // BitCardをDP用の所持カード3枚上限のビット集合に変換
-DPCard bit_to_dp(BitCard c) {
+DPCard bit_to_dp(BitCards c) {
     int max_rank = (bsr(c) >> 2) + 1;
     int result = 0;
     int card_number = 0;
@@ -147,7 +147,7 @@ Result next_game(Table table, Result DP[DP_PLAYER][DP_PLAYER][DP_LAYOUT][DP_ORDE
 
     // check can pass
     // プレイヤーが2人だから今出す順番の人が出せなければ(最上位ビットがテーブル以下ならば)パス
-    BitCard playing;
+    BitCards playing;
     if (table.order == 1) {
         playing = table.player1;
     } else {
@@ -169,7 +169,7 @@ Result next_game(Table table, Result DP[DP_PLAYER][DP_PLAYER][DP_LAYOUT][DP_ORDE
         return result;
     }
 
-    BitCard c = playing;
+    BitCards c = playing;
     Result result{};
     Result tmpResult{};
 
@@ -198,7 +198,7 @@ Result next_game(Table table, Result DP[DP_PLAYER][DP_PLAYER][DP_LAYOUT][DP_ORDE
 }
 
 void start_game(Table table, Result DP[DP_PLAYER][DP_PLAYER][DP_LAYOUT][DP_ORDER]) {
-    BitCard c = table.player0;
+    BitCards c = table.player0;
     int currentRank = -1;
 
     while (c) {
@@ -221,8 +221,8 @@ void start_game(Table table, Result DP[DP_PLAYER][DP_PLAYER][DP_LAYOUT][DP_ORDER
     }
 }
 
-void deal_card(BitCard card_to_deal, Table initTable, Result DP[DP_PLAYER][DP_PLAYER][DP_LAYOUT][DP_ORDER]) {
-    BitCard c = card_to_deal;
+void deal_card(BitCards card_to_deal, Table initTable, Result DP[DP_PLAYER][DP_PLAYER][DP_LAYOUT][DP_ORDER]) {
+    BitCards c = card_to_deal;
 
     while (c) {
         IntCard ic = bsf(c);
