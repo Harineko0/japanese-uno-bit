@@ -6,13 +6,12 @@ using namespace std;
 
 // region Constants
 const int MAX_PLAYER = 2;
-const int MAX_CARD_RANK = 4;
+const int MAX_CARD_RANK = 3;
 const int MAX_INT_CARD = MAX_CARD_RANK * 4 - 1;
 const int MAX_BIT_CARD = (1ULL << (MAX_INT_CARD + 1)) - 1ULL;
 const int MAX_CARD_TO_HAVE = 5;
 
-const int DP_PLAYER0 = 1 << 9;
-const int DP_PLAYER1 = 1 << 9;
+const int DP_PLAYER = MAX_BIT_CARD;
 const int DP_LAYOUT = 1 << 3;
 const int DP_ORDER = 1 << 1;
 // endregion
@@ -94,7 +93,7 @@ int next_order(int order) {
 // endregion
 
 // region Core functions
-Result next_game(Table table, Result DP[DP_PLAYER0][DP_PLAYER1][DP_LAYOUT][DP_ORDER]) {
+Result next_game(Table table, Result DP[DP_PLAYER][DP_PLAYER][DP_LAYOUT][DP_ORDER]) {
     int layoutRank = bsr(table.layout) >> 2;
 
     Result dp = DP[table.player0][table.player1][layoutRank][table.order];
@@ -108,7 +107,8 @@ Result next_game(Table table, Result DP[DP_PLAYER0][DP_PLAYER1][DP_LAYOUT][DP_OR
     if (firstHasCard || __popcount(table.player1) == 0) {
         Result result = {1, firstHasCard ? 1 : 0};
 
-        DP[table.player0][table.player1][layoutRank][table.order] = result;
+        Result resultForDP = result;
+        DP[table.player0][table.player1][layoutRank][table.order] = resultForDP;
 
         return result;
     }
@@ -129,7 +129,8 @@ Result next_game(Table table, Result DP[DP_PLAYER0][DP_PLAYER1][DP_LAYOUT][DP_OR
                                    table.player1}
                                    , DP);
 
-        DP[table.player0][table.player1][layoutRank][table.order] = result;
+        Result resultForDP = result;
+        DP[table.player0][table.player1][layoutRank][table.order] = resultForDP;
 
         return result;
     }
@@ -154,13 +155,13 @@ Result next_game(Table table, Result DP[DP_PLAYER0][DP_PLAYER1][DP_LAYOUT][DP_OR
         c &= c - 1;
     }
 
-    DP[table.player0][table.player1][layoutRank][table.order] = result;
+    Result resultForDP = result;
+    DP[table.player0][table.player1][layoutRank][table.order] = resultForDP;
 
     return result;
 }
 
-void start_game(Table table, Result DP[DP_PLAYER0][DP_PLAYER1][DP_LAYOUT][DP_ORDER]) {
-//    print(table);
+void start_game(Table table, Result DP[DP_PLAYER][DP_PLAYER][DP_LAYOUT][DP_ORDER]) {
     BitCard c = table.player0;
     int currentRank = -1;
 
@@ -184,7 +185,7 @@ void start_game(Table table, Result DP[DP_PLAYER0][DP_PLAYER1][DP_LAYOUT][DP_ORD
     }
 }
 
-void deal_card(BitCard card_to_deal, Table initTable, Result DP[DP_PLAYER0][DP_PLAYER1][DP_LAYOUT][DP_ORDER]) {
+void deal_card(BitCard card_to_deal, Table initTable, Result DP[DP_PLAYER][DP_PLAYER][DP_LAYOUT][DP_ORDER]) {
     BitCard c = card_to_deal;
 
     while (c) {
@@ -212,7 +213,7 @@ void deal_card(BitCard card_to_deal, Table initTable, Result DP[DP_PLAYER0][DP_P
 // endregion
 
 int main() {
-    Result (*DP)[DP_PLAYER1][DP_LAYOUT][DP_ORDER] = (Result(*)[DP_PLAYER1][DP_LAYOUT][DP_ORDER])malloc(DP_PLAYER0 * DP_PLAYER1 * DP_LAYOUT * DP_ORDER * sizeof(Result));
+    Result (*DP)[DP_PLAYER][DP_LAYOUT][DP_ORDER] = (Result(*)[DP_PLAYER][DP_LAYOUT][DP_ORDER])malloc(DP_PLAYER * DP_PLAYER * DP_LAYOUT * DP_ORDER * sizeof(Result));
 
     if(DP == nullptr){
         printf("Error\n");
@@ -220,8 +221,8 @@ int main() {
         printf("OK\n");
     }
 
-    for(int i = 0; i < DP_PLAYER0; i++){
-        for(int j = 0; j < DP_PLAYER1; j++){
+    for(int i = 0; i < DP_PLAYER; i++){
+        for(int j = 0; j < DP_PLAYER; j++){
             for(int k = 0; k < DP_LAYOUT; k++){
                 for(int l = 0; l < DP_ORDER; l++){
                     DP[i][j][k][l] = {0, 0};
@@ -233,7 +234,7 @@ int main() {
     deal_card(MAX_BIT_CARD, {0, 0, 0, 0}, DP);
 
     for (int i = 0; i < MAX_CARD_RANK; i++) {
-        printf("%d: %lld / %lld = %d", i, sum_win_times[i], sum_trials[i], (double)sum_win_times[i] / (double)sum_trials[i]);
+        printf("%d: %lld / %lld = %f\n", i, sum_win_times[i], sum_trials[i], (double)sum_win_times[i] / (double)sum_trials[i]);
     }
 
     return 0;
