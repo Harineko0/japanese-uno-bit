@@ -6,12 +6,12 @@ using namespace std;
 
 // region Constants
 const int MAX_PLAYER = 2;
-const int MAX_CARD_RANK = 4;
+const int MAX_CARD_RANK = 7;
 const int MAX_INT_CARD = MAX_CARD_RANK * 4 - 1;
 const int MAX_BIT_CARD = (1 << (MAX_INT_CARD + 1)) - 1;
-const int MAX_CARD_TO_HAVE = 6;
+const int MAX_CARD_TO_HAVE = 5;
 
-const int DP_MAX_CARD = 3;
+const int DP_MAX_CARD = 4;
 const int DP_PLAYER = (1 << (3 * DP_MAX_CARD));
 const int DP_LAYOUT = 1 << 3;
 const int DP_ORDER = 1 << 1;
@@ -20,7 +20,7 @@ const int DP_ORDER = 1 << 1;
 // region Definitions
 typedef long long BitCards;
 typedef int IntCard;
-typedef long long DPCard;
+typedef int DPCard;
 
 struct Table {
     BitCards layout;
@@ -30,8 +30,8 @@ struct Table {
 };
 
 struct Result {
-    int trials;
-    int win_times;
+    long long trials;
+    long long win_times;
 
     inline Result operator+(Result a) const {
         return {a.trials + trials, a.win_times + win_times};
