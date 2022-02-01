@@ -11,7 +11,8 @@ const int MAX_INT_CARD = MAX_CARD_RANK * 4 - 1;
 const int MAX_BIT_CARD = (1 << (MAX_INT_CARD + 1)) - 1;
 const int MAX_CARD_TO_HAVE = 6;
 
-const int DP_PLAYER = (1 << (MAX_CARD_RANK - 1) * 4) - 1;
+const int DP_MAX_CARD = 3;
+const int DP_PLAYER = (1 << (3 * DP_MAX_CARD));
 const int DP_LAYOUT = 1 << 3;
 const int DP_ORDER = 1 << 1;
 // endregion
@@ -19,6 +20,7 @@ const int DP_ORDER = 1 << 1;
 // region Definitions
 typedef long long BitCard;
 typedef int IntCard;
+typedef long long DPCard;
 
 struct Table {
     BitCard layout;
@@ -47,7 +49,7 @@ long long sum_win_times[MAX_CARD_RANK];
 // endregion
 
 // region Util functions
-void print_bit(BitCard num) {
+void printb(BitCard num) {
     cout << bitset<52>(num) << endl;
 }
 
@@ -92,16 +94,39 @@ int next_order(int order) {
 }
 
 bool is_in_dp(Table table) {
-    return table.player0 <= DP_PLAYER and table.player1 <= DP_PLAYER;
+    return __popcount(table.player0) <= DP_MAX_CARD and __popcount(table.player1) <= DP_MAX_CARD;
+}
+
+// BitCardをDP用の所持カード3枚上限のビット集合に変換
+DPCard bit_to_dp(BitCard c) {
+    int max_rank = (bsr(c) >> 2) + 1;
+    int result = 0;
+    int card_number = 0;
+
+    for (int i = 0; i < max_rank; i++) {
+        int pop = __popcount(c & (0b1111 << (i * 4)));
+
+        for (int j = 0; j < pop; j++) {
+            result |= (i + 1) << card_number * DP_MAX_CARD;
+            card_number++;
+            if (card_number >= DP_MAX_CARD) return result;
+        }
+    }
+    return result;
 }
 // endregion
 
 // region Core functions
 Result next_game(Table table, Result DP[DP_PLAYER][DP_PLAYER][DP_LAYOUT][DP_ORDER]) {
+    DPCard player0_dp = bit_to_dp(table.player0);
+    DPCard player1_dp = bit_to_dp(table.player1);
+//    printb(table.player0);
+//    printb(player0_dp);
+//    printf("-------------\n");
     int layoutRank = bsr(table.layout) >> 2;
 
     if (is_in_dp(table)) {
-        Result dp = DP[table.player0][table.player1][layoutRank][table.order];
+        Result dp = DP[player0_dp][player1_dp][layoutRank][table.order];
         if (!dp.is_empty()) {
             return dp;
         }
@@ -114,7 +139,7 @@ Result next_game(Table table, Result DP[DP_PLAYER][DP_PLAYER][DP_LAYOUT][DP_ORDE
 
         if (is_in_dp(table)) {
             Result resultForDP = result;
-            DP[table.player0][table.player1][layoutRank][table.order] = resultForDP;
+            DP[player0_dp][player1_dp][layoutRank][table.order] = resultForDP;
         }
 
         return result;
@@ -134,11 +159,11 @@ Result next_game(Table table, Result DP[DP_PLAYER][DP_PLAYER][DP_LAYOUT][DP_ORDE
                                    next_order(table.order),
                                    table.player0,
                                    table.player1}
-                                   , DP);
+                , DP);
 
         if (is_in_dp(table)) {
             Result resultForDP = result;
-            DP[table.player0][table.player1][layoutRank][table.order] = resultForDP;
+            DP[player0_dp][player1_dp][layoutRank][table.order] = resultForDP;
         }
 
         return result;
@@ -153,10 +178,10 @@ Result next_game(Table table, Result DP[DP_PLAYER][DP_PLAYER][DP_LAYOUT][DP_ORDE
         IntCard card = bsf(c);
         if (layoutRank == -1 or card >> 2 > layoutRank) {
             tmpResult = next_game({table.layout | (1 << card),
-                       next_order(table.order),
-                       table.order == 0 ? playing & ~(1 << card) : table.player0,
-                       table.order == 1 ? playing & ~(1 << card) : table.player1}
-                       , DP);
+                                   next_order(table.order),
+                                   table.order == 0 ? playing & ~(1 << card) : table.player0,
+                                   table.order == 1 ? playing & ~(1 << card) : table.player1}
+                    , DP);
             result.win_times += tmpResult.win_times;
             result.trials += tmpResult.trials;
         }
@@ -166,7 +191,7 @@ Result next_game(Table table, Result DP[DP_PLAYER][DP_PLAYER][DP_LAYOUT][DP_ORDE
 
     if (is_in_dp(table)) {
         Result resultForDP = result;
-        DP[table.player0][table.player1][layoutRank][table.order] = resultForDP;
+        DP[player0_dp][player1_dp][layoutRank][table.order] = resultForDP;
     }
 
     return result;
@@ -186,7 +211,7 @@ void start_game(Table table, Result DP[DP_PLAYER][DP_PLAYER][DP_LAYOUT][DP_ORDER
                                        1,
                                        table.player0 & ~(1 << ic),
                                        table.player1}
-                                       , DP);
+                    , DP);
 
             sum_win_times[rank] += result.win_times;
             sum_trials[rank] += result.trials;
