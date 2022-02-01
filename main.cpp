@@ -6,12 +6,12 @@ using namespace std;
 
 // region Constants
 const int MAX_PLAYER = 2;
-const int MAX_CARD_RANK = 3;
+const int MAX_CARD_RANK = 4;
 const int MAX_INT_CARD = MAX_CARD_RANK * 4 - 1;
-const int MAX_BIT_CARD = (1ULL << (MAX_INT_CARD + 1)) - 1ULL;
-const int MAX_CARD_TO_HAVE = 5;
+const int MAX_BIT_CARD = (1 << (MAX_INT_CARD + 1)) - 1;
+const int MAX_CARD_TO_HAVE = 6;
 
-const int DP_PLAYER = MAX_BIT_CARD;
+const int DP_PLAYER = (1 << (MAX_CARD_RANK - 1) * 4) - 1;
 const int DP_LAYOUT = 1 << 3;
 const int DP_ORDER = 1 << 1;
 // endregion
@@ -90,16 +90,21 @@ int next_order(int order) {
     }
     return order;
 }
+
+bool is_in_dp(Table table) {
+    return table.player0 <= DP_PLAYER and table.player1 <= DP_PLAYER;
+}
 // endregion
 
 // region Core functions
 Result next_game(Table table, Result DP[DP_PLAYER][DP_PLAYER][DP_LAYOUT][DP_ORDER]) {
     int layoutRank = bsr(table.layout) >> 2;
 
-    Result dp = DP[table.player0][table.player1][layoutRank][table.order];
-//    print(dp.to_string());
-    if (!dp.is_empty()) {
-        return dp;
+    if (is_in_dp(table)) {
+        Result dp = DP[table.player0][table.player1][layoutRank][table.order];
+        if (!dp.is_empty()) {
+            return dp;
+        }
     }
 
     // check is end next_game
@@ -107,8 +112,10 @@ Result next_game(Table table, Result DP[DP_PLAYER][DP_PLAYER][DP_LAYOUT][DP_ORDE
     if (firstHasCard || __popcount(table.player1) == 0) {
         Result result = {1, firstHasCard ? 1 : 0};
 
-        Result resultForDP = result;
-        DP[table.player0][table.player1][layoutRank][table.order] = resultForDP;
+        if (is_in_dp(table)) {
+            Result resultForDP = result;
+            DP[table.player0][table.player1][layoutRank][table.order] = resultForDP;
+        }
 
         return result;
     }
@@ -129,8 +136,10 @@ Result next_game(Table table, Result DP[DP_PLAYER][DP_PLAYER][DP_LAYOUT][DP_ORDE
                                    table.player1}
                                    , DP);
 
-        Result resultForDP = result;
-        DP[table.player0][table.player1][layoutRank][table.order] = resultForDP;
+        if (is_in_dp(table)) {
+            Result resultForDP = result;
+            DP[table.player0][table.player1][layoutRank][table.order] = resultForDP;
+        }
 
         return result;
     }
@@ -155,8 +164,10 @@ Result next_game(Table table, Result DP[DP_PLAYER][DP_PLAYER][DP_LAYOUT][DP_ORDE
         c &= c - 1;
     }
 
-    Result resultForDP = result;
-    DP[table.player0][table.player1][layoutRank][table.order] = resultForDP;
+    if (is_in_dp(table)) {
+        Result resultForDP = result;
+        DP[table.player0][table.player1][layoutRank][table.order] = resultForDP;
+    }
 
     return result;
 }
