@@ -6,10 +6,10 @@ using namespace std;
 
 // region Constants
 const int MAX_PLAYER = 2;
-const int MAX_CARD_RANK = 7;
+const int MAX_CARD_RANK = 8;
 const int MAX_INT_CARD = MAX_CARD_RANK * 4 - 1;
-const int MAX_BIT_CARD = (1 << (MAX_INT_CARD + 1)) - 1;
-const int MAX_CARD_TO_HAVE = 5;
+const long long MAX_BIT_CARD = (1ULL << (MAX_INT_CARD + 1)) - 1ULL;
+const int MAX_CARD_TO_HAVE = 3;
 
 const int DP_MAX_CARD = 4;
 const int DP_PLAYER = (1 << (3 * DP_MAX_CARD));
@@ -20,7 +20,7 @@ const int DP_ORDER = 1 << 1;
 // region Definitions
 typedef long long BitCards;
 typedef int IntCard;
-typedef int DPCard;
+typedef long long DPCard;
 
 struct Table {
     BitCards layout;
@@ -100,7 +100,7 @@ bool is_in_dp(Table table) {
 // BitCardをDP用の所持カード3枚上限のビット集合に変換
 DPCard bit_to_dp(BitCards c) {
     int max_rank = (bsr(c) >> 2) + 1;
-    int result = 0;
+    DPCard result = 0;
     int card_number = 0;
 
     for (int i = 0; i < max_rank; i++) {
@@ -231,13 +231,13 @@ void deal_card(BitCards card_to_deal, Table initTable, Result DP[DP_PLAYER][DP_P
         // 順列ではなく組み合わせ。プレイヤーの最大IntCardよりもdealするカードの方が大きければ配る
         if (__popcount(initTable.player0) < MAX_CARD_TO_HAVE) {
             if (bsr(initTable.player0) < ic) {
-                nextTable.player0 |= 1 << ic;
-                deal_card(card_to_deal & ~(1 << ic), nextTable, DP);
+                nextTable.player0 |= 1LL << ic;
+                deal_card(card_to_deal & ~(1LL << ic), nextTable, DP);
             }
         } else if (__popcount(initTable.player1) < MAX_CARD_TO_HAVE) {
             if (bsr(initTable.player1) < ic) {
-                nextTable.player1 |= 1 << ic;
-                deal_card(card_to_deal & ~(1 << ic), nextTable, DP);
+                nextTable.player1 |= 1LL << ic;
+                deal_card(card_to_deal & ~(1LL << ic), nextTable, DP);
             }
         } else {
             start_game(nextTable, DP);
